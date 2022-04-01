@@ -12,13 +12,13 @@ Usage in a github `workflow.yml` file:
     registry: ghcr.io
     registry-username: username
     registry-password: password
-    severity: CRITICAL
+    severity: "CRITICAL"
 ```
 
 Optional parameters:
 
 ```yaml
-# CRITICAL, HIGH etc. separated by comma
+# CRITICAL,HIGH etc. separated by comma (no space)
 # defaults to CRITICAL
-severity:
+severity: "CRITICAL, HIGH"
 ```

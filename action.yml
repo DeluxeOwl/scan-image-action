@@ -17,7 +17,7 @@ inputs:
     description: "The password for the registry"
     required: true
   severity:
-    description: "The minimum severities separated by comma, e.g: CRITICAL, HIGH"
+    description: "The minimum severities separated by comma, e.g: CRITICAL,HIGH"
     required: false
     default: "CRITICAL"
 runs:

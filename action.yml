@@ -7,6 +7,9 @@ inputs:
   image-version:
     description: "The version of the image"
     required: true
+  registry:
+    description: "The login for the docker registry. e.g: ghcr.io"
+    required: true
   registry-username:
     description: "The username for the registry"
     required: true
@@ -15,8 +18,8 @@ inputs:
     required: true
   severity:
     description: "The minimum severities separated by comma, e.g: CRITICAL, HIGH"
-  vuln-type:
-    description: "The type of vulnerabilities to search for when scanning the image"
+    required: false
+    default: "CRITICAL"
 runs:
   using: "composite"
   steps:
@@ -30,27 +33,29 @@ runs:
         exit-code: "1"
         ignore-unfixed: true
         output: "trivy-results-1.sarif"
+        severity: "${{ inputs.severity }}"
 
     - name: Upload Trivy scan results for Dockerfile to GitHub Security tab
       uses: github/codeql-action/upload-sarif@v1
       if: ${{ always() && steps.scanDocker.outcome == 'failure' }}
       with:
         sarif_file: "trivy-results-1.sarif"
-    
-    - name: Deploy to registry
+
+    - name: Build the image and login
+      shell: bash
       run: |
-        docker build . --tag ${{ inputs.image-name }}:${{ inputs.image-version }}
-        docker login ghcr.io -u ${{ inputs.registry-username }} -p ${{ inputs.registry-password }}
-    
+        docker build . --tag "${{ inputs.image-name }}:${{ inputs.image-version }}"
+        docker login "${{ inputs.registry }}" -u "${{ inputs.registry-username }}" -p "${{ inputs.registry-password }}"
+
     - name: Trivy scan on image
       uses: aquasecurity/trivy-action@master
       id: scanImage
       with:
-        image-ref: ${{ inputs.image-name }}:${{ inputs.image-version }}
+        image-ref: "${{ inputs.image-name }}:${{ inputs.image-version }}"
         format: "sarif"
         output: "trivy-results-2.sarif"
-        exit-code: 1
-      # TODO: remove this?
+        exit-code: "1"
+        severity: "${{ inputs.severity }}"
       env:
         TRIVY_USERNAME: ${{ inputs.registry-username }}
         TRIVY_PASSWORD: ${{ inputs.registry-password }}
@@ -61,7 +66,8 @@ runs:
       with:
         sarif_file: "trivy-results-2.sarif"
 
-    - name: Push image to GHCR
+    - name: Push the image to the registry
+      shell: bash
       run: |
-        echo "Pushing to GHCR: ${{ inputs.image-name }}:${{ inputs.image-version }}"
+        echo "Pushing to registry: ${{ inputs.image-name }}:${{ inputs.image-version }}"
         docker push "${{ inputs.image-name }}:${{ inputs.image-version }}"

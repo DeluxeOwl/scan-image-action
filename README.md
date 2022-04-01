@@ -13,6 +13,8 @@ Usage in a github `workflow.yml` file:
     registry-username: username
     registry-password: password
     severity: "CRITICAL"
+    # This is reccommended
+    ignore-unfixed: true
 ```
 
 Optional parameters:

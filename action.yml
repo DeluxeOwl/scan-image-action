@@ -16,6 +16,9 @@ inputs:
   registry-password:
     description: "The password for the registry"
     required: true
+  ignore-unfixed:
+    description: "Ignore unfixed vulnerabilities"
+    required: true
   severity:
     description: "The minimum severities separated by comma, e.g: CRITICAL,HIGH"
     required: false
@@ -31,7 +34,7 @@ runs:
         hide-progress: false
         format: "sarif"
         exit-code: "1"
-        ignore-unfixed: true
+        ignore-unfixed: ${{ inputs.ignore-unfixed }}
         output: "trivy-results-1.sarif"
         severity: "${{ inputs.severity }}"
 
@@ -55,6 +58,7 @@ runs:
         format: "sarif"
         output: "trivy-results-2.sarif"
         exit-code: "1"
+        ignore-unfixed: ${{ inputs.ignore-unfixed }}
         severity: "${{ inputs.severity }}"
       env:
         TRIVY_USERNAME: ${{ inputs.registry-username }}
